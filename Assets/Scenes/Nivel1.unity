@@ -246,7 +246,7 @@ Transform:
   m_GameObject: {fileID: 56117706}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 6.7, y: -2.9, z: 0}
+  m_LocalPosition: {x: 8.6, y: -2.87, z: 0}
   m_LocalScale: {x: 0.4954146, y: 0.4954146, z: 0.4954146}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -684,6 +684,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   velocidad: 1
+  jugador: {fileID: 2122098939}
+  distanciaCerca: 2
+  distanciaAtrapado: 1
 --- !u!1 &1750410627
 GameObject:
   m_ObjectHideFlags: 0
@@ -694,7 +697,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1750410629}
   - component: {fileID: 1750410628}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: SpriteRenderer
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -780,7 +783,7 @@ GameObject:
   - component: {fileID: 2043514524}
   - component: {fileID: 2043514523}
   - component: {fileID: 2043514522}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: Main Camera
   m_TagString: MainCamera
   m_Icon: {fileID: 0}
@@ -1159,7 +1162,7 @@ Transform:
   m_GameObject: {fileID: 2098635273}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0.52, y: -4.04, z: 0}
+  m_LocalPosition: {x: 2.06, y: -4.07, z: 0}
   m_LocalScale: {x: 0.55305415, y: 0.5893809, z: 0.33136255}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -1177,7 +1180,7 @@ GameObject:
   - component: {fileID: 2122098937}
   - component: {fileID: 2122098936}
   - component: {fileID: 2122098935}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: Jugador
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1270,7 +1273,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   velocidad: 5
   visualSR: {fileID: 1750410628}
-  escalaVisualEscondido: {x: 0.6, y: 0.2, z: 1}
+  estaEscondido: 0
 --- !u!4 &2122098939
 Transform:
   m_ObjectHideFlags: 0
