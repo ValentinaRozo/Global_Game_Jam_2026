@@ -20,6 +20,13 @@ public class MovimientoPersonaje : MonoBehaviour
 
     private SpriteRenderer srEsconditeActual;
 
+    [Header("Sonido de pasos")]
+    public AudioSource audioPasos;
+    public AudioClip[] pasos;
+    public float intervaloPasos = 0.4f;
+
+    private float temporizadorPasos;
+
     void Start()
     {
         rb = GetComponent<Rigidbody2D>();
@@ -27,10 +34,11 @@ public class MovimientoPersonaje : MonoBehaviour
         if (visualSR == null)
             visualSR = GetComponentInChildren<SpriteRenderer>();
 
+        if (audioPasos == null)
+            audioPasos = GetComponent<AudioSource>();
+
         spriteNormal = visualSR.sprite;
         escalaVisualNormal = visualSR.transform.localScale;
-
-        // Posici?n local original del Visual
         visualLocalPosNormal = visualSR.transform.localPosition;
     }
 
@@ -40,6 +48,8 @@ public class MovimientoPersonaje : MonoBehaviour
 
         if (puedeEsconderse && Input.GetKeyDown(KeyCode.Space))
             Esconderse();
+
+        ManejarPasos();
     }
 
     void FixedUpdate()
@@ -52,6 +62,36 @@ public class MovimientoPersonaje : MonoBehaviour
 
         rb.velocity = movimiento.normalized * velocidad;
     }
+
+    void ManejarPasos()
+    {
+        bool seEstaMoviendo = Mathf.Abs(movimiento.x) > 0.1f;
+
+        if (seEstaMoviendo && !estaEscondido)
+        {
+            temporizadorPasos -= Time.deltaTime;
+
+            if (temporizadorPasos <= 0f)
+            {
+                ReproducirPaso();
+                temporizadorPasos = intervaloPasos;
+            }
+        }
+        else
+        {
+            temporizadorPasos = 0f;
+        }
+    }
+
+    void ReproducirPaso()
+    {
+        if (pasos.Length == 0) return;
+
+        int indice = Random.Range(0, pasos.Length);
+        audioPasos.PlayOneShot(pasos[indice]);
+    }
+
+
 
     public void Esconderse()
     {
