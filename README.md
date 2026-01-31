@@ -1,1 +1,1 @@
-# Global_Game_Jam_2026
+# Global Game Jam 2026
