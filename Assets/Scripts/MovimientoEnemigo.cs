@@ -7,13 +7,19 @@ public class MovimientoEnemigo : MonoBehaviour
     private int direccion = 1; // 1 = derecha, -1 = izquierda
     private Rigidbody2D rb;
 
-    [Header("Detecci?n")]
+    [Header("Deteccion")]
     public Transform jugador;
-    public float distanciaCerca = 1.5f;     // brazo
-    public float distanciaAtrapado = 0.7f;  // manos
+    public float distanciaCerca;
+    public float distanciaAtrapado;
+
+
+    [Header("Peligro")]
+    public GameObject peligro;
+
 
     void Start()
     {
+        //peligro.SetActive(false);
         rb = GetComponent<Rigidbody2D>();
     }
 
@@ -27,10 +33,8 @@ public class MovimientoEnemigo : MonoBehaviour
     {
         if (jugador == null) return;
 
-        // Vector hacia el jugador
         Vector2 haciaJugador = jugador.position - transform.position;
 
-        // ?? ?Est? delante?
         bool estaDelante = Mathf.Sign(haciaJugador.x) == direccion;
 
         if (!estaDelante) return;
@@ -39,12 +43,18 @@ public class MovimientoEnemigo : MonoBehaviour
 
         if (distancia <= distanciaAtrapado)
         {
+            peligro.SetActive(false);
             Debug.Log("?? ATRAPADO (delante)");
         }
         else if (distancia <= distanciaCerca)
         {
-            Debug.Log("?? EST? CERCA (delante)");
+            peligro.SetActive(true);
         }
+        if (distancia > distanciaCerca)
+        {
+            peligro.SetActive(false);
+        }
+
     }
 
     void OnCollisionEnter2D(Collision2D collision)
