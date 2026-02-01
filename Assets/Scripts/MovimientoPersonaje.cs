@@ -59,8 +59,10 @@ public class MovimientoPersonaje : MonoBehaviour
         if (puedeEsconderse && Input.GetKeyDown(KeyCode.Space))
             Esconderse();
 
+        // ENTER para abrir puerta (si est? cerca)
         if (puedeAbrirPuerta && (Input.GetKeyDown(KeyCode.Return) || Input.GetKeyDown(KeyCode.KeypadEnter)))
         {
+            Debug.Log("ENTER en puerta. puertaActual=" + (puertaActual != null));
             puertaActual?.IntentarAbrir();
         }
 
@@ -164,11 +166,18 @@ public class MovimientoPersonaje : MonoBehaviour
             esconditeAudioActual = other.GetComponent<EsconditeAudio>();
         }
 
-        // Detectar puerta (tag Door en el trigger, usualmente hijo)
         if (other.CompareTag("Door"))
         {
-            puertaActual = other.GetComponentInParent<Puerta>();
+            // 1) si el script Puerta est? en el MISMO objeto del trigger
+            Puerta p = other.GetComponent<Puerta>();
+
+            // 2) si el trigger est? en un HIJO, busca en el padre
+            if (p == null) p = other.GetComponentInParent<Puerta>();
+
+            puertaActual = p;
             puedeAbrirPuerta = (puertaActual != null);
+
+            Debug.Log("Cerca de Door. Encontr? Puerta? " + (puertaActual != null));
         }
     }
 
@@ -188,14 +197,16 @@ public class MovimientoPersonaje : MonoBehaviour
             esconditeAudioActual = null;
         }
 
-        // Salir de puerta (solo si es la misma puerta)
         if (other.CompareTag("Door"))
         {
             Puerta p = other.GetComponent<Puerta>();
+            if (p == null) p = other.GetComponentInParent<Puerta>();
+
             if (puertaActual == p)
             {
                 puedeAbrirPuerta = false;
                 puertaActual = null;
+                Debug.Log("Sal? de Door");
             }
         }
     }

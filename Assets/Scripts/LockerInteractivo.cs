@@ -48,6 +48,7 @@ public class LockerInteractivo : MonoBehaviour
         if (estaAbierto && sonidoAbrir != null && audioSource != null)
         {
             audioSource.PlayOneShot(sonidoAbrir);
+            JuegoProgreso.lockerAbierto = true;
         }
     }
 
