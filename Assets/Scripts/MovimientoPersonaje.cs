@@ -5,31 +5,45 @@ public class MovimientoPersonaje : MonoBehaviour
     public float velocidad = 4f;
 
     [Header("Referencias")]
-    public SpriteRenderer visualSR;            // Arrastra aqu? el SpriteRenderer del hijo "Visual"
-
-    [Header("Escalas (solo Visual)")]
-    public Vector3 escalaVisualEscondido = new Vector3(0.6f, 0.6f, 1f);
+    public SpriteRenderer visualSR;
 
     private Rigidbody2D rb;
     private Vector2 movimiento;
 
     private bool puedeEsconderse = false;
-    private bool estaEscondido = false;
+    public bool estaEscondido = false;
 
     private Sprite spriteNormal;
-    private Sprite spriteEsconditeActual;
     private Vector3 escalaVisualNormal;
+
+    private Vector3 visualLocalPosNormal;
+
+    private SpriteRenderer srEsconditeActual;
+
+    [Header("Sonido de pasos")]
+    public AudioSource audioPasos;
+    public AudioClip[] pasos;
+    public float intervaloPasos = 0.4f;
+
+    [Header("Sonido de esconderse")]
+    public AudioSource audioEsconderse;
+    private EsconditeAudio esconditeAudioActual;
+
+    private float temporizadorPasos;
 
     void Start()
     {
         rb = GetComponent<Rigidbody2D>();
 
-        // Si no lo asignas en el inspector, intenta encontrarlo en hijos
         if (visualSR == null)
             visualSR = GetComponentInChildren<SpriteRenderer>();
 
+        if (audioPasos == null)
+            audioPasos = GetComponent<AudioSource>();
+
         spriteNormal = visualSR.sprite;
         escalaVisualNormal = visualSR.transform.localScale;
+        visualLocalPosNormal = visualSR.transform.localPosition;
     }
 
     void Update()
@@ -38,6 +52,8 @@ public class MovimientoPersonaje : MonoBehaviour
 
         if (puedeEsconderse && Input.GetKeyDown(KeyCode.Space))
             Esconderse();
+
+        ManejarPasos();
     }
 
     void FixedUpdate()
@@ -51,19 +67,80 @@ public class MovimientoPersonaje : MonoBehaviour
         rb.velocity = movimiento.normalized * velocidad;
     }
 
-    public void Esconderse()
+    void ManejarPasos()
     {
-        estaEscondido = !estaEscondido;
+        bool seEstaMoviendo = Mathf.Abs(movimiento.x) > 0.1f;
 
-        if (estaEscondido && spriteEsconditeActual != null)
+        if (seEstaMoviendo && !estaEscondido)
         {
-            visualSR.sprite = spriteEsconditeActual;
-            visualSR.transform.localScale = escalaVisualEscondido; // ? solo Visual
+            temporizadorPasos -= Time.deltaTime;
+
+            if (temporizadorPasos <= 0f)
+            {
+                ReproducirPaso();
+                temporizadorPasos = intervaloPasos;
+            }
         }
         else
         {
+            temporizadorPasos = 0f;
+        }
+    }
+
+    void ReproducirPaso()
+    {
+        if (pasos.Length == 0) return;
+
+        int indice = Random.Range(0, pasos.Length);
+        audioPasos.PlayOneShot(pasos[indice]);
+    }
+
+
+
+    public void Esconderse()
+    {
+        bool vaAEsconderse = !estaEscondido;
+        estaEscondido = vaAEsconderse;
+
+        if (audioEsconderse != null && esconditeAudioActual != null)
+        {
+            AudioClip clip = vaAEsconderse
+                ? esconditeAudioActual.GetEntrar()
+                : esconditeAudioActual.GetSalir();
+
+            if (clip != null)
+                audioEsconderse.PlayOneShot(clip);
+        }
+
+        if (estaEscondido && srEsconditeActual != null && srEsconditeActual.sprite != null)
+        {
+
+            visualSR.sprite = srEsconditeActual.sprite;
+
+            Vector2 objetivoWorld = srEsconditeActual.bounds.size;
+            Vector2 actualWorld = visualSR.bounds.size;
+
+            float factorX = (actualWorld.x > 0f) ? (objetivoWorld.x / actualWorld.x) : 1f;
+            float factorY = (actualWorld.y > 0f) ? (objetivoWorld.y / actualWorld.y) : 1f;
+
+            Vector3 s = visualSR.transform.localScale;
+            s.x *= factorX + 0.05f;
+            s.y *= factorY + 0.05f ;
+            visualSR.transform.localScale = s;
+
+            Vector3 centroEscondite = srEsconditeActual.bounds.center;
+            Vector2 offsetVisual = new Vector2(0f, 0.15f);
+            Vector3 local = transform.InverseTransformPoint(centroEscondite);
+            
+            visualSR.transform.localPosition = new Vector3(local.x, local.y, visualLocalPosNormal.z);
+            visualSR.transform.localPosition = new Vector3(local.x+offsetVisual.x, local.y+offsetVisual.y, visualLocalPosNormal.z);
+        }
+        else
+        {
+            // Volver a normal
             visualSR.sprite = spriteNormal;
-            visualSR.transform.localScale = escalaVisualNormal;     // ? solo Visual
+            visualSR.transform.localScale = escalaVisualNormal;
+            visualSR.transform.localPosition = visualLocalPosNormal;
         }
     }
 
@@ -72,10 +149,9 @@ public class MovimientoPersonaje : MonoBehaviour
         if (other.CompareTag("Escondite"))
         {
             puedeEsconderse = true;
+            srEsconditeActual = other.GetComponent<SpriteRenderer>();
 
-            SpriteRenderer srEscondite = other.GetComponent<SpriteRenderer>();
-            if (srEscondite != null)
-                spriteEsconditeActual = srEscondite.sprite;
+            esconditeAudioActual = other.GetComponent<EsconditeAudio>();
         }
     }
 
@@ -88,7 +164,10 @@ public class MovimientoPersonaje : MonoBehaviour
 
             visualSR.sprite = spriteNormal;
             visualSR.transform.localScale = escalaVisualNormal;
-            spriteEsconditeActual = null;
+            visualSR.transform.localPosition = visualLocalPosNormal;
+
+            srEsconditeActual = null;
+            esconditeAudioActual = null;
         }
     }
 }
