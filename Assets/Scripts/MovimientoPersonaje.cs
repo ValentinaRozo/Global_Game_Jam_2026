@@ -25,6 +25,10 @@ public class MovimientoPersonaje : MonoBehaviour
     public AudioClip[] pasos;
     public float intervaloPasos = 0.4f;
 
+    [Header("Sonido de esconderse")]
+    public AudioSource audioEsconderse;
+    private EsconditeAudio esconditeAudioActual;
+
     private float temporizadorPasos;
 
     void Start()
@@ -95,7 +99,18 @@ public class MovimientoPersonaje : MonoBehaviour
 
     public void Esconderse()
     {
-        estaEscondido = !estaEscondido;
+        bool vaAEsconderse = !estaEscondido;
+        estaEscondido = vaAEsconderse;
+
+        if (audioEsconderse != null && esconditeAudioActual != null)
+        {
+            AudioClip clip = vaAEsconderse
+                ? esconditeAudioActual.GetEntrar()
+                : esconditeAudioActual.GetSalir();
+
+            if (clip != null)
+                audioEsconderse.PlayOneShot(clip);
+        }
 
         if (estaEscondido && srEsconditeActual != null && srEsconditeActual.sprite != null)
         {
@@ -135,6 +150,8 @@ public class MovimientoPersonaje : MonoBehaviour
         {
             puedeEsconderse = true;
             srEsconditeActual = other.GetComponent<SpriteRenderer>();
+
+            esconditeAudioActual = other.GetComponent<EsconditeAudio>();
         }
     }
 
@@ -150,6 +167,7 @@ public class MovimientoPersonaje : MonoBehaviour
             visualSR.transform.localPosition = visualLocalPosNormal;
 
             srEsconditeActual = null;
+            esconditeAudioActual = null;
         }
     }
 }
