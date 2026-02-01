@@ -6,6 +6,7 @@ TagManager:
   tags:
   - Escondite
   - Locker
+  - Door
   layers:
   - Default
   - TransparentFX

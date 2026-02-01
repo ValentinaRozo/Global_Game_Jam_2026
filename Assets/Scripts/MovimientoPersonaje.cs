@@ -18,7 +18,6 @@ public class MovimientoPersonaje : MonoBehaviour
     private Vector3 visualLocalPosNormal;
 
     private SpriteRenderer srEsconditeActual;
-
     private Color colorVisualNormal;
 
     [Header("Sonido de pasos")]
@@ -31,6 +30,11 @@ public class MovimientoPersonaje : MonoBehaviour
     private EsconditeAudio esconditeAudioActual;
 
     private float temporizadorPasos;
+
+    // ====== PUERTA ======
+    private bool puedeAbrirPuerta = false;
+    private Puerta puertaActual;
+    // ====================
 
     void Start()
     {
@@ -45,7 +49,6 @@ public class MovimientoPersonaje : MonoBehaviour
         spriteNormal = visualSR.sprite;
         escalaVisualNormal = visualSR.transform.localScale;
         visualLocalPosNormal = visualSR.transform.localPosition;
-
         colorVisualNormal = visualSR.color;
     }
 
@@ -55,6 +58,11 @@ public class MovimientoPersonaje : MonoBehaviour
 
         if (puedeEsconderse && Input.GetKeyDown(KeyCode.Space))
             Esconderse();
+
+        if (puedeAbrirPuerta && (Input.GetKeyDown(KeyCode.Return) || Input.GetKeyDown(KeyCode.KeypadEnter)))
+        {
+            puertaActual?.IntentarAbrir();
+        }
 
         ManejarPasos();
     }
@@ -93,7 +101,6 @@ public class MovimientoPersonaje : MonoBehaviour
     void ReproducirPaso()
     {
         if (pasos.Length == 0) return;
-
         int indice = Random.Range(0, pasos.Length);
         audioPasos.PlayOneShot(pasos[indice]);
     }
@@ -115,11 +122,8 @@ public class MovimientoPersonaje : MonoBehaviour
 
         if (estaEscondido && srEsconditeActual != null && srEsconditeActual.sprite != null)
         {
-  
             visualSR.sprite = srEsconditeActual.sprite;
-
             visualSR.color = Color.black;
-
 
             Vector2 objetivoWorld = srEsconditeActual.bounds.size;
             Vector2 actualWorld = visualSR.bounds.size;
@@ -147,7 +151,6 @@ public class MovimientoPersonaje : MonoBehaviour
             visualSR.sprite = spriteNormal;
             visualSR.transform.localScale = escalaVisualNormal;
             visualSR.transform.localPosition = visualLocalPosNormal;
-
             visualSR.color = colorVisualNormal;
         }
     }
@@ -159,6 +162,13 @@ public class MovimientoPersonaje : MonoBehaviour
             puedeEsconderse = true;
             srEsconditeActual = other.GetComponent<SpriteRenderer>();
             esconditeAudioActual = other.GetComponent<EsconditeAudio>();
+        }
+
+        // Detectar puerta (tag Door en el trigger, usualmente hijo)
+        if (other.CompareTag("Door"))
+        {
+            puertaActual = other.GetComponentInParent<Puerta>();
+            puedeAbrirPuerta = (puertaActual != null);
         }
     }
 
@@ -172,11 +182,21 @@ public class MovimientoPersonaje : MonoBehaviour
             visualSR.sprite = spriteNormal;
             visualSR.transform.localScale = escalaVisualNormal;
             visualSR.transform.localPosition = visualLocalPosNormal;
-
             visualSR.color = colorVisualNormal;
 
             srEsconditeActual = null;
             esconditeAudioActual = null;
+        }
+
+        // Salir de puerta (solo si es la misma puerta)
+        if (other.CompareTag("Door"))
+        {
+            Puerta p = other.GetComponent<Puerta>();
+            if (puertaActual == p)
+            {
+                puedeAbrirPuerta = false;
+                puertaActual = null;
+            }
         }
     }
 }
