@@ -33,6 +33,8 @@ public class TypeWriterEffect : MonoBehaviour
     public float fadeDuration = 1f;
     public Color fadeColor = Color.black;
 
+    public GameObject boton;
+
     private CanvasGroup fadeCanvasGroup;
 
     void Start()
@@ -54,24 +56,35 @@ public class TypeWriterEffect : MonoBehaviour
 
     void Update()
     {
-        // if (isTypingDone && Input.GetKeyDown(KeyCode.Return) || Input.GetKeyDown(KeyCode.Space))
-        // {
-        //     NextDialogueLine();
-        // }
         if (Input.GetKeyDown(KeyCode.Return) || Input.GetKeyDown(KeyCode.Space))
         {
-            if (isTyping) // Si está escribiendo
+            if (isTyping)
             {
                 // Completar el texto instantáneamente
                 CompleteText();
             }
-            else if (isTypingDone) // Si ya terminó de escribir
+            else if (isTypingDone)
             {
-                // Avanzar al siguiente diálogo
-                NextDialogueLine();
+                // SI ES LA ÚLTIMA LÍNEA → CAMBIAR DE ESCENA
+                if (IsLastLine())
+                {
+                    StartCoroutine(EndDialogueAndTransition());
+                }
+                else
+                {
+                    NextDialogueLine();
+                }
             }
         }
     }
+
+    private bool IsLastLine()
+    {
+        return lineIndex >= dialogueLines.Length - 1;
+    }
+
+
+
 
     IEnumerator TypeText()
     {
@@ -148,28 +161,21 @@ public class TypeWriterEffect : MonoBehaviour
     private void NextDialogueLine()
     {
         lineIndex++;
-        
+
         if (lineIndex < dialogueLines.Length)
         {
-            // Hay más líneas, mostrar la siguiente
-            // StartCoroutine(TypeText());
             typingCoroutine = StartCoroutine(TypeText());
-        }
-        else
-        {
-            // No hay más líneas, cerrar el diálogo
-            // dialoguePanel.SetActive(false);
-
-            // Último diálogo terminado, hacer transición
-            StartCoroutine(EndDialogueAndTransition());
+            boton.SetActive(true);
         }
     }
 
+
     IEnumerator EndDialogueAndTransition()
     {
+        boton.SetActive(true);
         // Cerrar el panel de diálogo
         if (dialoguePanel != null)
-            dialoguePanel.SetActive(false);
+            dialoguePanel.SetActive(true);
         
         // Esperar un momento
         yield return new WaitForSeconds(delayBeforeTransition);
@@ -177,6 +183,7 @@ public class TypeWriterEffect : MonoBehaviour
         // Hacer transición
         if (enableSceneTransition)
         {
+
             yield return StartCoroutine(FadeAndLoadScene());
         }
     }
@@ -212,6 +219,7 @@ public class TypeWriterEffect : MonoBehaviour
 
     IEnumerator FadeAndLoadScene()
     {
+        boton.SetActive(true);
         if (fadeCanvasGroup != null)
         {
             float elapsed = 0f;

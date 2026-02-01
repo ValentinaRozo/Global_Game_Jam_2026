@@ -5,6 +5,10 @@ using UnityEngine.SceneManagement;
 
 public class CambioEscena : MonoBehaviour
 {
+    [Header("Sonido")]
+    public AudioSource audioSource;
+    public AudioClip sonido;
+
     // Start is called before the first frame update
     void Start()
     {
@@ -22,6 +26,13 @@ public class CambioEscena : MonoBehaviour
     public void CargarEscena(string nombreEscena)
     {
         SceneManager.LoadScene(nombreEscena);
+    }
+
+    public void CargarEscenaSonido(string nombreEscena)
+    {
+        audioSource.PlayOneShot(sonido);
+        SceneManager.LoadScene(nombreEscena);
+
     }
 
 }
