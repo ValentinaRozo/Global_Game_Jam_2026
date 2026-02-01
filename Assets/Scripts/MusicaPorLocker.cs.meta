@@ -3,7 +3,9 @@ guid: de2b5f1791e6e484f8f945c122bc266c
 MonoImporter:
   externalObjects: {}
   serializedVersion: 2
-  defaultReferences: []
+  defaultReferences:
+  - soloBateria: {fileID: 24500006, guid: bb1a36fa21b5545e6a1fb550a59d24ba, type: 2}
+  - bateriaYBajo: {fileID: 5282058071899644773, guid: bb1a36fa21b5545e6a1fb550a59d24ba, type: 2}
   executionOrder: 0
   icon: {instanceID: 0}
   userData: 

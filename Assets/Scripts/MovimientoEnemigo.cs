@@ -9,8 +9,8 @@ public class MovimientoEnemigo : MonoBehaviour
 
     [Header("Deteccion")]
     public Transform jugador;
-    public float distanciaCerca;
-    public float distanciaAtrapado;
+    public float distanciaCerca = 3f;
+    public float distanciaAtrapado = 1f;
 
     [Header("Peligro")]
     public GameObject peligro;
@@ -25,6 +25,13 @@ public class MovimientoEnemigo : MonoBehaviour
 
     private MovimientoPersonaje jugadorScript;
 
+    // ✅ GAME OVER por atrapar
+    [Header("Game Over (si atrapa)")]
+    public GameObject gameOverUI;
+    public AudioSource audioGameOver;
+    public AudioClip clipGameOver;
+    private bool gameOverActivado = false;
+
     void Start()
     {
         rb = GetComponent<Rigidbody2D>();
@@ -34,10 +41,15 @@ public class MovimientoEnemigo : MonoBehaviour
 
         if (jugador != null)
             jugadorScript = jugador.GetComponent<MovimientoPersonaje>();
+
+        if (gameOverUI != null)
+            gameOverUI.SetActive(false);
     }
 
     void FixedUpdate()
     {
+        if (gameOverActivado) return;
+
         rb.velocity = new Vector2(direccion * velocidad, rb.velocity.y);
 
         ManejarPasos();
@@ -77,9 +89,10 @@ public class MovimientoEnemigo : MonoBehaviour
     {
         if (jugador == null) return;
 
+        // Si el jugador está escondido, no lo detecta
         if (jugadorScript != null && jugadorScript.estaEscondido)
         {
-            peligro.SetActive(false);
+            if (peligro != null) peligro.SetActive(false);
             return;
         }
 
@@ -88,7 +101,7 @@ public class MovimientoEnemigo : MonoBehaviour
         bool estaDelante = Mathf.Sign(haciaJugador.x) == direccion;
         if (!estaDelante)
         {
-            peligro.SetActive(false);
+            if (peligro != null) peligro.SetActive(false);
             return;
         }
 
@@ -96,22 +109,50 @@ public class MovimientoEnemigo : MonoBehaviour
 
         if (distancia <= distanciaAtrapado)
         {
-            peligro.SetActive(false);
+            if (peligro != null) peligro.SetActive(false);
             Debug.Log("👿 ATRAPADO (delante)");
+            ActivarGameOverPorEnemigo();
         }
         else if (distancia <= distanciaCerca)
         {
-            peligro.SetActive(true);
+            if (peligro != null) peligro.SetActive(true);
             Debug.Log("👀 ESTA CERCA (delante)");
         }
         else
         {
-            peligro.SetActive(false);
+            if (peligro != null) peligro.SetActive(false);
+        }
+    }
+
+    void ActivarGameOverPorEnemigo()
+    {
+        if (gameOverActivado) return;
+        gameOverActivado = true;
+
+        // Mostrar UI
+        if (gameOverUI != null)
+            gameOverUI.SetActive(true);
+
+        // Pausar juego
+        Time.timeScale = 0f;
+
+        // Sonido (que suene aunque esté pausado)
+        if (audioGameOver != null)
+        {
+            audioGameOver.ignoreListenerPause = true;
+
+            if (clipGameOver != null)
+                audioGameOver.PlayOneShot(clipGameOver);
+            else
+                audioGameOver.Play();
         }
     }
 
     void OnCollisionEnter2D(Collision2D collision)
     {
+        // Si ya hubo game over, no importa rebotar
+        if (gameOverActivado) return;
+
         direccion *= -1;
 
         Vector3 escala = transform.localScale;

@@ -23,6 +23,9 @@ public class Puerta : MonoBehaviour
 
     public void IntentarAbrir()
     {
+        // Debug para saber por qué no abre
+        Debug.Log($"IntentarAbrir() -> abierta={abierta} | lockerAbierto={JuegoProgreso.lockerAbierto}");
+
         if (abierta) return;
 
         // Solo abre si ya visitó/abrió el locker
@@ -43,5 +46,7 @@ public class Puerta : MonoBehaviour
 
         if (audioSource != null && sonidoAbrir != null)
             audioSource.PlayOneShot(sonidoAbrir);
+
+        Debug.Log("Puerta abierta ✅");
     }
 }
