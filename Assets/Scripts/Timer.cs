@@ -4,7 +4,7 @@ using TMPro;
 public class Timer : MonoBehaviour
 {
     [Header("Tiempo")]
-    public float tiempoInicial = 60f;
+    public float tiempoInicial = 180f;
     private float tiempoActual;
 
     [Header("UI")]
