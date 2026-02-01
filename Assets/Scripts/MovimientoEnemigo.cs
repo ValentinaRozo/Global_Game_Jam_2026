@@ -23,7 +23,6 @@ public class MovimientoEnemigo : MonoBehaviour
 
     private float temporizadorPasos;
 
-    // 👉 referencia al script del jugador
     private MovimientoPersonaje jugadorScript;
 
     void Start()
@@ -45,7 +44,6 @@ public class MovimientoEnemigo : MonoBehaviour
         DetectarJugador();
     }
 
-    // ================= PASOS =================
     void ManejarPasos()
     {
         bool seEstaMoviendo = Mathf.Abs(rb.velocity.x) > velocidadMinimaParaPasos;
@@ -75,12 +73,10 @@ public class MovimientoEnemigo : MonoBehaviour
         audioPasos.PlayOneShot(pasosEnemigo[i]);
     }
 
-    // ================= DETECCIÓN =================
     void DetectarJugador()
     {
         if (jugador == null) return;
 
-        // 🔒 SI EL JUGADOR ESTÁ OCULTO → NO LO VE
         if (jugadorScript != null && jugadorScript.estaEscondido)
         {
             peligro.SetActive(false);
