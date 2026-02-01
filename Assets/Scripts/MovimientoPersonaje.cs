@@ -15,10 +15,11 @@ public class MovimientoPersonaje : MonoBehaviour
 
     private Sprite spriteNormal;
     private Vector3 escalaVisualNormal;
-
     private Vector3 visualLocalPosNormal;
 
     private SpriteRenderer srEsconditeActual;
+
+    private Color colorVisualNormal;
 
     [Header("Sonido de pasos")]
     public AudioSource audioPasos;
@@ -44,6 +45,8 @@ public class MovimientoPersonaje : MonoBehaviour
         spriteNormal = visualSR.sprite;
         escalaVisualNormal = visualSR.transform.localScale;
         visualLocalPosNormal = visualSR.transform.localPosition;
+
+        colorVisualNormal = visualSR.color;
     }
 
     void Update()
@@ -95,8 +98,6 @@ public class MovimientoPersonaje : MonoBehaviour
         audioPasos.PlayOneShot(pasos[indice]);
     }
 
-
-
     public void Esconderse()
     {
         bool vaAEsconderse = !estaEscondido;
@@ -114,8 +115,11 @@ public class MovimientoPersonaje : MonoBehaviour
 
         if (estaEscondido && srEsconditeActual != null && srEsconditeActual.sprite != null)
         {
-
+  
             visualSR.sprite = srEsconditeActual.sprite;
+
+            visualSR.color = Color.black;
+
 
             Vector2 objetivoWorld = srEsconditeActual.bounds.size;
             Vector2 actualWorld = visualSR.bounds.size;
@@ -125,22 +129,26 @@ public class MovimientoPersonaje : MonoBehaviour
 
             Vector3 s = visualSR.transform.localScale;
             s.x *= factorX + 0.05f;
-            s.y *= factorY + 0.05f ;
+            s.y *= factorY + 0.05f;
             visualSR.transform.localScale = s;
 
             Vector3 centroEscondite = srEsconditeActual.bounds.center;
             Vector2 offsetVisual = new Vector2(0f, 0.15f);
             Vector3 local = transform.InverseTransformPoint(centroEscondite);
-            
-            visualSR.transform.localPosition = new Vector3(local.x, local.y, visualLocalPosNormal.z);
-            visualSR.transform.localPosition = new Vector3(local.x+offsetVisual.x, local.y+offsetVisual.y, visualLocalPosNormal.z);
+
+            visualSR.transform.localPosition = new Vector3(
+                local.x + offsetVisual.x,
+                local.y + offsetVisual.y,
+                visualLocalPosNormal.z
+            );
         }
         else
         {
-            // Volver a normal
             visualSR.sprite = spriteNormal;
             visualSR.transform.localScale = escalaVisualNormal;
             visualSR.transform.localPosition = visualLocalPosNormal;
+
+            visualSR.color = colorVisualNormal;
         }
     }
 
@@ -150,7 +158,6 @@ public class MovimientoPersonaje : MonoBehaviour
         {
             puedeEsconderse = true;
             srEsconditeActual = other.GetComponent<SpriteRenderer>();
-
             esconditeAudioActual = other.GetComponent<EsconditeAudio>();
         }
     }
@@ -165,6 +172,8 @@ public class MovimientoPersonaje : MonoBehaviour
             visualSR.sprite = spriteNormal;
             visualSR.transform.localScale = escalaVisualNormal;
             visualSR.transform.localPosition = visualLocalPosNormal;
+
+            visualSR.color = colorVisualNormal;
 
             srEsconditeActual = null;
             esconditeAudioActual = null;
