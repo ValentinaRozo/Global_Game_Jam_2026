@@ -2,6 +2,8 @@ using System.Collections;
 using UnityEngine;
 using TMPro;
 
+using UnityEngine.SceneManagement;
+
 public class TypeWriterEffect : MonoBehaviour
 {
     public TextMeshProUGUI textComponent;
@@ -23,12 +25,27 @@ public class TypeWriterEffect : MonoBehaviour
     private Coroutine typingCoroutine; // NUEVO - referencia a la corrutina
     // public float offsetBelowText = 20f; // Espacio debajo del texto
 
+    // Para la transición de escena
+    [Header("Transición de Escena")]
+    public bool enableSceneTransition = true;
+    public string nextSceneName = ""; // Escribe aquí el nombre de tu siguiente escena
+    public float delayBeforeTransition = 0.5f;
+    public float fadeDuration = 1f;
+    public Color fadeColor = Color.black;
+
+    private CanvasGroup fadeCanvasGroup;
+
     void Start()
     {
 
         lineIndex = 0;
         if (keyIndicator != null)
             keyIndicator.SetActive(false);
+
+        if (enableSceneTransition)
+        {
+            CreateFadePanel();
+        }
 
         typingCoroutine = StartCoroutine(TypeText());
             
@@ -73,7 +90,7 @@ public class TypeWriterEffect : MonoBehaviour
 
         // // Escribir letra por letra
         // string currentLine = dialogueLines[lineIndex]; // Aquí es donde falla
-        foreach (char letter in dialogueLines[lineIndex])
+        foreach (char letter in fullText)
         {
             textComponent.text += letter;
             yield return new WaitForSeconds(typingSpeed);
@@ -141,7 +158,84 @@ public class TypeWriterEffect : MonoBehaviour
         else
         {
             // No hay más líneas, cerrar el diálogo
+            // dialoguePanel.SetActive(false);
+
+            // Último diálogo terminado, hacer transición
+            StartCoroutine(EndDialogueAndTransition());
+        }
+    }
+
+    IEnumerator EndDialogueAndTransition()
+    {
+        // Cerrar el panel de diálogo
+        if (dialoguePanel != null)
             dialoguePanel.SetActive(false);
+        
+        // Esperar un momento
+        yield return new WaitForSeconds(delayBeforeTransition);
+        
+        // Hacer transición
+        if (enableSceneTransition)
+        {
+            yield return StartCoroutine(FadeAndLoadScene());
+        }
+    }
+
+    void CreateFadePanel()
+    {
+        Canvas canvas = FindObjectOfType<Canvas>();
+        if (canvas == null)
+        {
+            Debug.LogWarning("No se encontró Canvas para el fade.");
+            return;
+        }
+
+        GameObject fadePanel = new GameObject("FadePanel");
+        fadePanel.transform.SetParent(canvas.transform, false);
+
+        RectTransform rect = fadePanel.AddComponent<RectTransform>();
+        rect.anchorMin = Vector2.zero;
+        rect.anchorMax = Vector2.one;
+        rect.offsetMin = Vector2.zero;
+        rect.offsetMax = Vector2.zero;
+
+        UnityEngine.UI.Image image = fadePanel.AddComponent<UnityEngine.UI.Image>();
+        image.color = fadeColor;
+        image.raycastTarget = false;
+
+        fadeCanvasGroup = fadePanel.AddComponent<CanvasGroup>();
+        fadeCanvasGroup.alpha = 0;
+        fadeCanvasGroup.blocksRaycasts = false;
+
+        fadePanel.transform.SetAsLastSibling();
+    }
+
+    IEnumerator FadeAndLoadScene()
+    {
+        if (fadeCanvasGroup != null)
+        {
+            float elapsed = 0f;
+            while (elapsed < fadeDuration)
+            {
+                elapsed += Time.deltaTime;
+                fadeCanvasGroup.alpha = Mathf.Clamp01(elapsed / fadeDuration);
+                yield return null;
+            }
+            fadeCanvasGroup.alpha = 1;
+        }
+        else
+        {
+            yield return new WaitForSeconds(fadeDuration);
+        }
+
+        if (!string.IsNullOrEmpty(nextSceneName))
+        {
+            SceneManager.LoadScene(nextSceneName);
+        }
+        else
+        {
+            Debug.LogError("¡No se especificó el nombre de la siguiente escena!");
         }
     }
 }
+
