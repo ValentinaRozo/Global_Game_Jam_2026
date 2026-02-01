@@ -1,73 +1,4 @@
-// using System.Collections;
-// using System.Collections.Generic;
-// using UnityEngine;
-// using TMPro;
-
-// public class TypeWriterEffect : MonoBehaviour
-// {
-//     public TextMeshProUGUI textComponent;
-//     public float typingSpeed = 0.05f;
-
-//     //New
-//     private int lineIndex;
-//     private bool isTypingDone = false;
-
-//     [TextArea]
-//     public string fullText;
-
-//     public string[] dialogueLines;
-//     public GameObject dialoguePanel;
-
-//     void Start()
-//     {
-//         StartCoroutine(TypeText());
-//     }
-
-//     void Update()
-//     {
-//         if (isTypingDone && Input.GetKeyDown(KeyCode.Space))
-//         {
-//             NextDialogueLine();
-//         }
-//     }
-
-//     IEnumerator TypeText()
-//     {
-//         textComponent.text = "";
-//         isTypingDone = false;
-
-//         foreach (char letter in fullText)
-//         {
-//             textComponent.text += letter;
-//             yield return new WaitForSeconds(typingSpeed);
-//         }
-
-//         // Espera un poco y muestra todo el texto de golpe
-//         yield return new WaitForSeconds(0.5f);
-//         textComponent.text = fullText;
-//         isTypingDone = true;
-//     }
-
-//     private void NextDialogueLine()
-//     {
-//         // Lógica para avanzar a la siguiente línea de diálogo
-//         lineIndex++;
-//         if (lineIndex < dialogueLines.Length)
-//         {
-//             fullText = dialogueLines[lineIndex];
-//             StartCoroutine(TypeText());
-//         }
-//         else
-//         {
-//             // Fin del diálogo
-//             dialoguePanel.SetActive(false);
-//         }
-//     }
-// }
-
-
 using System.Collections;
-// using System.Collections.Generic;
 using UnityEngine;
 using TMPro;
 
@@ -78,6 +9,7 @@ public class TypeWriterEffect : MonoBehaviour
 
     private int lineIndex = 0;
     private bool isTypingDone = false;
+    private bool isTyping = false; // NUEVO - para saber si está escribiendo
 
     // [TextArea]
     public string[] dialogueLines;
@@ -87,7 +19,9 @@ public class TypeWriterEffect : MonoBehaviour
     public GameObject keyIndicator; // Arrastra aquí un UI Image o Text (ej: "Presiona ESPACIO")
 
     public TextMeshProUGUI keyIndicatorText;
-    public float offsetBelowText = 20f; // Espacio debajo del texto
+
+    private Coroutine typingCoroutine; // NUEVO - referencia a la corrutina
+    // public float offsetBelowText = 20f; // Espacio debajo del texto
 
     void Start()
     {
@@ -95,15 +29,30 @@ public class TypeWriterEffect : MonoBehaviour
         lineIndex = 0;
         if (keyIndicator != null)
             keyIndicator.SetActive(false);
+
+        typingCoroutine = StartCoroutine(TypeText());
             
-        StartCoroutine(TypeText());
+        // StartCoroutine(TypeText());
     }
 
     void Update()
     {
-        if (isTypingDone && Input.GetKeyDown(KeyCode.Return) || Input.GetKeyDown(KeyCode.Space))
+        // if (isTypingDone && Input.GetKeyDown(KeyCode.Return) || Input.GetKeyDown(KeyCode.Space))
+        // {
+        //     NextDialogueLine();
+        // }
+        if (Input.GetKeyDown(KeyCode.Return) || Input.GetKeyDown(KeyCode.Space))
         {
-            NextDialogueLine();
+            if (isTyping) // Si está escribiendo
+            {
+                // Completar el texto instantáneamente
+                CompleteText();
+            }
+            else if (isTypingDone) // Si ya terminó de escribir
+            {
+                // Avanzar al siguiente diálogo
+                NextDialogueLine();
+            }
         }
     }
 
@@ -112,10 +61,14 @@ public class TypeWriterEffect : MonoBehaviour
 
         textComponent.text = "";
         isTypingDone = false;
+        isTyping = true; // NUEVO - actualizar estado de escritura
         
         // Ocultar indicador mientras se escribe
         if (keyIndicator != null)
             keyIndicator.SetActive(false);
+
+        // Guardar el texto completo
+        string fullText = dialogueLines[lineIndex];
 
 
         // // Escribir letra por letra
@@ -127,13 +80,34 @@ public class TypeWriterEffect : MonoBehaviour
         }
 
         // Texto completado
+        isTyping = false; // NUEVO - marca que terminó de escribir
         isTypingDone = true;
 
         // AGREGADO: Llamar a las funciones que creaste
         UpdateKeyIndicator();
-        PositionKeyIndicator();
+        // PositionKeyIndicator();
         
         // Mostrar indicador de tecla
+        if (keyIndicator != null)
+            keyIndicator.SetActive(true);
+    }
+
+    // NUEVA FUNCIÓN - Completar texto instantáneamente
+    private void CompleteText()
+    {
+        if (typingCoroutine != null)
+        {
+            StopCoroutine(typingCoroutine); // Detener la animación
+        }
+
+        // Mostrar el texto completo
+        textComponent.text = dialogueLines[lineIndex];
+        
+        isTyping = false;
+        isTypingDone = true;
+        
+        UpdateKeyIndicator();
+        
         if (keyIndicator != null)
             keyIndicator.SetActive(true);
     }
@@ -153,30 +127,6 @@ public class TypeWriterEffect : MonoBehaviour
         }
     }
 
-    private void PositionKeyIndicator()
-    {
-        if (keyIndicator == null || textComponent == null) return;
-
-        // Forzar actualización del layout del texto
-        Canvas.ForceUpdateCanvases();
-        textComponent.ForceMeshUpdate();
-
-        // Obtener la altura real del texto
-        float textHeight = textComponent.preferredHeight;
-
-        // Posicionar el indicador debajo del texto
-        RectTransform textRect = textComponent.GetComponent<RectTransform>();
-        RectTransform indicatorRect = keyIndicator.GetComponent<RectTransform>();
-
-        // Calcular posición Y debajo del texto
-        float newY = textRect.anchoredPosition.y - (textHeight / 2) - offsetBelowText - (indicatorRect.rect.height / 2);
-
-        indicatorRect.anchoredPosition = new Vector2(
-            indicatorRect.anchoredPosition.x, // Mantener X
-            newY // Nueva Y
-        );
-    }
-    // New code end
 
     private void NextDialogueLine()
     {
@@ -185,7 +135,8 @@ public class TypeWriterEffect : MonoBehaviour
         if (lineIndex < dialogueLines.Length)
         {
             // Hay más líneas, mostrar la siguiente
-            StartCoroutine(TypeText());
+            // StartCoroutine(TypeText());
+            typingCoroutine = StartCoroutine(TypeText());
         }
         else
         {
