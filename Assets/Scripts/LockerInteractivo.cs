@@ -6,6 +6,10 @@ public class LockerInteractivo : MonoBehaviour
     public Sprite spriteCerrado;
     public Sprite spriteAbierto;
 
+    [Header("Sonido")]
+    public AudioSource audioSource;
+    public AudioClip sonidoAbrir;
+
     public bool soloUnaVez = true;
 
     private SpriteRenderer sr;
@@ -15,8 +19,12 @@ public class LockerInteractivo : MonoBehaviour
     void Start()
     {
         sr = GetComponent<SpriteRenderer>();
+
         if (sr != null && spriteCerrado != null)
             sr.sprite = spriteCerrado;
+
+        if (audioSource == null)
+            audioSource = GetComponent<AudioSource>();
     }
 
     void Update()
@@ -32,11 +40,15 @@ public class LockerInteractivo : MonoBehaviour
     void CambiarSprite()
     {
         if (sr == null) return;
-
         if (soloUnaVez && estaAbierto) return;
 
         estaAbierto = !estaAbierto;
         sr.sprite = estaAbierto ? spriteAbierto : spriteCerrado;
+
+        if (estaAbierto && sonidoAbrir != null && audioSource != null)
+        {
+            audioSource.PlayOneShot(sonidoAbrir);
+        }
     }
 
     private void OnTriggerEnter2D(Collider2D other)

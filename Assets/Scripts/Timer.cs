@@ -8,6 +8,8 @@ public class Timer : MonoBehaviour
 
     public TextMeshProUGUI timerText;
 
+    private bool corriendo = true;
+
     void Start()
     {
         tiempoActual = tiempoInicial;
@@ -16,6 +18,8 @@ public class Timer : MonoBehaviour
 
     void Update()
     {
+        if (!corriendo) return;
+
         if (tiempoActual > 0)
         {
             tiempoActual -= Time.deltaTime;
@@ -32,7 +36,12 @@ public class Timer : MonoBehaviour
     {
         int minutos = Mathf.FloorToInt(tiempoActual / 60);
         int segundos = Mathf.FloorToInt(tiempoActual % 60);
-
         timerText.text = minutos.ToString("00") + ":" + segundos.ToString("00");
+    }
+
+    // 🔹 para que PauseManager lo controle
+    public void SetCorriendo(bool estado)
+    {
+        corriendo = estado;
     }
 }
