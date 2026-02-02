@@ -22,6 +22,10 @@ public class TypeWriterEffect : MonoBehaviour
 
     public TextMeshProUGUI keyIndicatorText;
 
+    [Header("Audio")]
+    public AudioSource voiceSource;
+    public AudioClip[] voiceClips; // uno por cada línea
+
     private Coroutine typingCoroutine; // NUEVO - referencia a la corrutina
     // public float offsetBelowText = 20f; // Espacio debajo del texto
 
@@ -49,9 +53,17 @@ public class TypeWriterEffect : MonoBehaviour
             CreateFadePanel();
         }
 
-        typingCoroutine = StartCoroutine(TypeText());
+        // typingCoroutine = StartCoroutine(TypeText());
+        typingCoroutine = StartCoroutine(DelayedStart());
             
         // StartCoroutine(TypeText());
+    }
+
+    // NUEVA FUNCIÓN
+    IEnumerator DelayedStart()
+    {
+        yield return new WaitForSeconds(1f); // Cambia 2f por los segundos que quieras
+        typingCoroutine = StartCoroutine(TypeText());
     }
 
     void Update()
@@ -92,6 +104,16 @@ public class TypeWriterEffect : MonoBehaviour
         textComponent.text = "";
         isTypingDone = false;
         isTyping = true; // NUEVO - actualizar estado de escritura
+
+        // Reproducir audio si existe
+        // Reproducir voz de la línea actual
+        if (voiceSource != null && voiceClips.Length > lineIndex && voiceClips[lineIndex] != null)
+        {
+            voiceSource.Stop();
+            voiceSource.clip = voiceClips[lineIndex];
+            voiceSource.Play();
+        }
+
         
         // Ocultar indicador mientras se escribe
         if (keyIndicator != null)
@@ -132,6 +154,11 @@ public class TypeWriterEffect : MonoBehaviour
 
         // Mostrar el texto completo
         textComponent.text = dialogueLines[lineIndex];
+
+        if (voiceSource != null && voiceSource.isPlaying)
+        {
+            voiceSource.Stop();
+        }
         
         isTyping = false;
         isTypingDone = true;
@@ -160,6 +187,11 @@ public class TypeWriterEffect : MonoBehaviour
 
     private void NextDialogueLine()
     {
+        if (voiceSource != null && voiceSource.isPlaying)
+        {
+            voiceSource.Stop();
+        }
+
         lineIndex++;
 
         if (lineIndex < dialogueLines.Length)
