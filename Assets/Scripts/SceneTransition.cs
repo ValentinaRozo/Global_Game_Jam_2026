@@ -6,12 +6,11 @@ using UnityEngine.UI;
 public class SceneTransition : MonoBehaviour
 {
     [Header("Configuración de Transición")]
-    public string nextSceneName; // Nombre de la siguiente escena
-    public float transitionDuration = 1f; // Duración del fade
-    public Color fadeColor = Color.black; // Color del fade
+    public string nextSceneName;
+    public float transitionDuration = 1f;
+    public Color fadeColor = Color.black;
     
-    // [Header("Opcional - Panel de Fade")]
-    public Image fadePanel; // Si ya tienes un panel, arrástralo aquí
+    public Image fadePanel;
     
     private static SceneTransition instance;
     
@@ -48,7 +47,7 @@ public class SceneTransition : MonoBehaviour
             canvas = canvasObj.AddComponent<Canvas>();
             canvas.renderMode = RenderMode.ScreenSpaceOverlay;
             canvasObj.AddComponent<UnityEngine.UI.GraphicRaycaster>();
-            canvas.sortingOrder = 9999; // Asegurar que esté encima de todo
+            canvas.sortingOrder = 9999;
         }
         
         // Crear panel

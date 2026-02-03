@@ -11,24 +11,24 @@ public class TypeWriterEffect : MonoBehaviour
 
     private int lineIndex = 0;
     private bool isTypingDone = false;
-    private bool isTyping = false; // NUEVO - para saber si está escribiendo
+    private bool isTyping = false;
 
-    // [TextArea]
+    [TextArea]
     public string[] dialogueLines;
     public GameObject dialoguePanel;
     
     // Indicador de tecla
-    public GameObject keyIndicator; // Arrastra aquí un UI Image o Text (ej: "Presiona ESPACIO")
+    public GameObject keyIndicator;
 
-    public TextMeshProUGUI keyIndicatorText;
+    [Header("Audio")]
+    public AudioSource voiceSource;
+    public AudioClip[] voiceClips;
 
-    private Coroutine typingCoroutine; // NUEVO - referencia a la corrutina
-    // public float offsetBelowText = 20f; // Espacio debajo del texto
+    private Coroutine typingCoroutine;
 
-    // Para la transición de escena
     [Header("Transición de Escena")]
     public bool enableSceneTransition = true;
-    public string nextSceneName = ""; // Escribe aquí el nombre de tu siguiente escena
+    public string nextSceneName = "";
     public float delayBeforeTransition = 0.5f;
     public float fadeDuration = 1f;
     public Color fadeColor = Color.black;
@@ -39,19 +39,24 @@ public class TypeWriterEffect : MonoBehaviour
 
     void Start()
     {
-
         lineIndex = 0;
         if (keyIndicator != null)
+        {
             keyIndicator.SetActive(false);
+        }
 
         if (enableSceneTransition)
         {
             CreateFadePanel();
         }
 
+        typingCoroutine = StartCoroutine(DelayedStart());
+    }
+
+    IEnumerator DelayedStart()
+    {
+        yield return new WaitForSeconds(1f);
         typingCoroutine = StartCoroutine(TypeText());
-            
-        // StartCoroutine(TypeText());
     }
 
     void Update()
@@ -88,78 +93,76 @@ public class TypeWriterEffect : MonoBehaviour
 
     IEnumerator TypeText()
     {
-
         textComponent.text = "";
         isTypingDone = false;
-        isTyping = true; // NUEVO - actualizar estado de escritura
+        isTyping = true;
+
+        // Reproducir voz de la línea actual
+        if (voiceSource != null && voiceClips.Length > lineIndex && voiceClips[lineIndex] != null)
+        {
+            voiceSource.Stop();
+            voiceSource.clip = voiceClips[lineIndex];
+            voiceSource.Play();
+        }
+
         
         // Ocultar indicador mientras se escribe
         if (keyIndicator != null)
+        {
             keyIndicator.SetActive(false);
+        }
 
         // Guardar el texto completo
         string fullText = dialogueLines[lineIndex];
 
 
-        // // Escribir letra por letra
-        // string currentLine = dialogueLines[lineIndex]; // Aquí es donde falla
+        // Escribir letra por letra
         foreach (char letter in fullText)
         {
             textComponent.text += letter;
             yield return new WaitForSeconds(typingSpeed);
         }
 
-        // Texto completado
-        isTyping = false; // NUEVO - marca que terminó de escribir
+        isTyping = false;
         isTypingDone = true;
-
-        // AGREGADO: Llamar a las funciones que creaste
-        UpdateKeyIndicator();
-        // PositionKeyIndicator();
         
         // Mostrar indicador de tecla
         if (keyIndicator != null)
+        {
             keyIndicator.SetActive(true);
+        }
     }
 
-    // NUEVA FUNCIÓN - Completar texto instantáneamente
+    // Completar texto instantáneamente
     private void CompleteText()
     {
         if (typingCoroutine != null)
         {
-            StopCoroutine(typingCoroutine); // Detener la animación
+            StopCoroutine(typingCoroutine);
         }
 
         // Mostrar el texto completo
         textComponent.text = dialogueLines[lineIndex];
+
+        if (voiceSource != null && voiceSource.isPlaying)
+        {
+            voiceSource.Stop();
+        }
         
         isTyping = false;
         isTypingDone = true;
-        
-        UpdateKeyIndicator();
         
         if (keyIndicator != null)
             keyIndicator.SetActive(true);
     }
 
-    // New code
-    private void UpdateKeyIndicator()
-    {
-        if (keyIndicatorText == null) return;
-
-        if (lineIndex >= dialogueLines.Length - 1)
-        {
-            keyIndicatorText.text = "↵ CERRAR";
-        }
-        else
-        {
-            keyIndicatorText.text = "↵ CONTINUAR";
-        }
-    }
-
-
     private void NextDialogueLine()
     {
+        if (voiceSource != null && voiceSource.isPlaying)
+        {
+            voiceSource.Stop();
+        }
+
         lineIndex++;
 
         if (lineIndex < dialogueLines.Length)
@@ -175,7 +178,9 @@ public class TypeWriterEffect : MonoBehaviour
         boton.SetActive(true);
         // Cerrar el panel de diálogo
         if (dialoguePanel != null)
+        {
             dialoguePanel.SetActive(true);
+        }
         
         // Esperar un momento
         yield return new WaitForSeconds(delayBeforeTransition);
@@ -183,7 +188,6 @@ public class TypeWriterEffect : MonoBehaviour
         // Hacer transición
         if (enableSceneTransition)
         {
-
             yield return StartCoroutine(FadeAndLoadScene());
         }
     }
@@ -220,6 +224,7 @@ public class TypeWriterEffect : MonoBehaviour
     IEnumerator FadeAndLoadScene()
     {
         boton.SetActive(true);
+
         if (fadeCanvasGroup != null)
         {
             float elapsed = 0f;
@@ -239,10 +244,6 @@ public class TypeWriterEffect : MonoBehaviour
         if (!string.IsNullOrEmpty(nextSceneName))
         {
             SceneManager.LoadScene(nextSceneName);
-        }
-        else
-        {
-            Debug.LogError("¡No se especificó el nombre de la siguiente escena!");
         }
     }
 }
